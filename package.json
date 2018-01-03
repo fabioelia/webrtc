@@ -17,7 +17,10 @@
     "install": "^0.10.2",
     "lodash": "^4.17.4",
     "npm": "^5.6.0",
+    "signalhub": "^4.9.0",
     "simple-peer": "^8.2.0",
-    "webpack-dev-server": "^2.9.7"
+    "webpack": "^3.10.0",
+    "webpack-dev-server": "^2.9.7",
+    "webrtc-swarm": "https://github.com/delapuente/webrtc-swarm.git#stream-support"
   }
 }
