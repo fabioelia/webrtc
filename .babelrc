@@ -1,0 +1,20 @@
+{
+  "env" : {
+    "app": {
+      "presets": [
+        ["es2015", { "modules": false }],
+        "react",
+        "stage-3",
+      ],
+      "plugins": ["babel-plugin-syntax-dynamic-import", "transform-runtime", "transform-decorators-legacy", "transform-class-properties"]
+    },
+    "test": {
+      "presets": [
+        ["es2015", { "modules": false }],
+        "react",
+        "stage-3",
+      ],
+      "plugins": ["istanbul", "babel-plugin-syntax-dynamic-import", "transform-runtime", "transform-decorators-legacy", "transform-class-properties"]
+    }
+  }
+}
