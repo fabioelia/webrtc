@@ -1,59 +1,69 @@
-var swarm = require('webrtc-swarm')
-var signalhub = require('signalhub')
-var _ = require('lodash');
+const swarm = require('webrtc-swarm');
+const signalhub = require('signalhub');
+const _ = require('lodash');
 
-var url = new URL(location.href);
-var params = url.searchParams;
-var options = {};
-var isTeacher = params.get('teacher');
+const options = {};
+const canvas = document.getElementById("canvas");
+const video = document.querySelector('video');
+
+const url = new URL(location.href);
+const params = url.searchParams;
+const isTeacher = params.get('teacher');
 
 if (isTeacher) {
-  var c = document.getElementById("canvas");
-  var ctx = c.getContext("2d");
-  ctx.beginPath();
-  ctx.arc(100, 75, 50, 0, 2 * Math.PI);
-  ctx.stroke();
+  const canvas = document.getElementById("canvas");
   options.initiator = true;
-  options.stream = c.captureStream(0);
-  var i = 10;
-  setInterval(function(){
-    ctx.arc(100 + i, 75 + i, 50 + i, 0, 2 * Math.PI);
-    ctx.stroke();
-    i += 4;
-  }, 200);
+  options.stream = canvas.captureStream(25);
 }
 
-var hub = signalhub('teacher-example', ['https://signalhub-jccqtwhdwc.now.sh'])
-var sw = swarm(hub, options);
+const hub = signalhub('teacher-example-1', ['https://signalhub-jccqtwhdwc.now.sh'])
+const sw = swarm(hub, options);
 
 sw.on('peer', function (peer, id) {
-  console.log('connected to a new peer:', id);
-  console.log('total peers:', sw.peers.length);
-  peer.on('data', function (data) {
-    // got a data channel message
-    console.log('got a message from peer: ' + data)
-  });
-  peer.on('stream', function (stream) {
-    // got remote video stream, now let's show it in a video tag
-    var video = document.querySelector('video')
-    video.srcObject = stream; //window.URL.createObjectURL(stream)
-    video.onloadedmetadata = function(e) {
-      // test;
-      console.log("TEST");
-    }
-    video.play();
-  })
+  console.log(`connected to a new peer: ${id} (total ${sw.peers.length})`);
+  peerSetup(peer);
 })
 
 sw.on('disconnect', function (peer, id) {
-  console.log('disconnected from a peer:', id);
-  console.log('total peers:', sw.peers.length);
+  console.log(`disconnected from a peer: ${id} (total ${sw.peers.length})`);
 })
 
-function message() {
+const message = (value, type = 'message') => {
+  const m = JSON.stringify({
+    type,
+    value
+  });
   _.each(sw.peers, function(peer) {
-    peer.send('xyz');
+    peer.send(m);
   });
 }
+
+const log = (msg) => {
+  console.log(`MSG: ${msg}`);
+}
+
+const peerSetup = (peer) => {
+  // Listen for data, data will be used to send JSON messages back and forth
+  peer.on('data', function (data) {
+    const { value, type } = JSON.parse(data);
+    console.log(`message from peer (${peer}): ${value} of type ${type}`);
+  });
+
+  // Listen for streams, streams will be played back through a video element
+  peer.on('stream', function (stream) {
+    video.src = window.URL.createObjectURL(stream)
+    video.play();
+  })
+
+  // Log any additional signals / errors
+  peer.on('error', log);
+  peer.on('signal', log);
+}
+
 window.message = message;
 window.sw = sw;
+
+
+
+// A more complicated canvas to test with.
+require('./particle.js');
