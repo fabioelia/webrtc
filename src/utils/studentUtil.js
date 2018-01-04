@@ -2,6 +2,7 @@ import CONSTANTS from '../constants';
 import { ConnectionManager } from '../connectionManager';
 import { communicationChannel } from '../channels';
 
+// @TODO this maybe useless :)
 class StudentUtil {
   constructor() {
     this.students = {};
@@ -17,14 +18,22 @@ class StudentUtil {
   receive({ peerId, type, message, target }) {
     switch(type) {
       case CONSTANTS.COMMAND_TYPES.NEW_CONNECTION:
+        // Peer list has been sent over message
         const students = message;
+
+        // @TODO determine how we would like this data stored / retrieved
+
+        // Empty out our studentList dropdown
         const dropdown = document.getElementById('studentList');
         dropdown.innerHTML = '<option selected></option>';
+
         _.each(students, ({ alias }) => {
+          // @TODO we need to get better student data, like names
           dropdown.options.add( new Option(alias, alias));
           this.students[alias] = { alias };
         });
 
+        // Update the counter for active connections
         document.getElementById('connections').innerHTML = _.size(students);
       break;
     }

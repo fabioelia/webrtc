@@ -5,7 +5,7 @@ const _ = require('lodash');
 
 const { COMMAND_TYPES, CHANNEL_LIST: { METRICS_CHANNEL, STREAMING_CHANNEL } } = CONSTANTS;
 const loggerUtil = (context) => {
-  return (msg) => console.log(`${context}: `, msg);
+  return (...msg) => console.log(`${context}: `, msg);
 };
 const logger = loggerUtil('ConnectionManager');
 
@@ -112,36 +112,42 @@ export class ConnectionManager {
     }
   }
 
+  /**
+   * receive - called when a command is recieved
+   * @param {String} type
+   * @param {String|Object} message
+   * @param {?String} target
+   */
   receive({ type, message, target }) {
+    // A few base commands, if we see a teacher keep track of it
     if (type === COMMAND_TYPES.SET_TEACHER) {
       this.teacher = message;
+      // If we have recieved a disconnect command close the socket
     } else if (type === COMMAND_TYPES.DISCONNECT) {
       this.sw.close();
     }
 
+    // Notify all listeners of the commands we just recieved
     _.each(this.listeners, (listener) => listener.receive({ peerId: this.peerId, type, message, target }));
 
-    if (_.isNull(target) || target === this.sw.me) {
-      logger('Recieved command', type, message, target);
-      // switch(type) {
-      //   case 'startStream':
-      //   case 'endStream':
-      //   case 'stats':
-      //     message = {
-      //       score: 4,
-      //       time: 2,
-      //     };
-      // }
-    }
+    logger('Recieved command', type, message, target);
   }
 
   listen() {
-    this.sw.on('disconnect', (peer) => logger('DISCONNECT'));
+    this.sw.on('disconnect', (peer) => logger('DISCONNECT', peer));
+    this.sw.on('close', this.disconnectCallback);
+
+    // A new connection has been made to a peer
     this.sw.on('peer', (peer, id) => {
       peer.alias = id;
-      logger(`connected to a new peer: ${id} (total ${_.size(this.peers)})`);
+      logger(`Connected to a new peer: ${id} (total ${_.size(this.peers)})`);
 
+      // Any commands that come in should get sent to the receive method
       peer.on('data', (data) => this.receive(JSON.parse(data)));
+
+      // Log any additional signals / errors
+      peer.on('error', (data) => logger('ERROR'));
+      peer.on('signal', (data) => logger('SIGNAL'));
 
       // Listen for streams, streams will be played back through a video element
       if (this.videoElement) {
@@ -151,18 +157,19 @@ export class ConnectionManager {
         });
       }
 
-      // Log any additional signals / errors
-      peer.on('error', (data) => logger('ERROR'));
-      peer.on('signal', (data) => logger('SIGNAL'));
-
+      // We have a new peer, run any commands that are required to run on new connections
       _.each(FORCE_COMMANDS, command => this.send(command));
+
+      // Trigger a fake recieve command indicating a new peer has connected
       this.receive({ message: this.peers, type: COMMAND_TYPES.NEW_CONNECTION });
     });
-
-    this.sw.on('close', this.disconnectCallback);
   }
 
-  register(callback) {
-    this.listeners.push(callback);
+  /**
+   * register - Allows for utilties or callbacks to be called when a message is recieved
+   * @param {Object} klass.recieve - Expects a class or object with a receive method
+   */
+  register(klass) {
+    this.listeners.push(klass);
   }
 }

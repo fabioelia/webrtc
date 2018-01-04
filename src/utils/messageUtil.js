@@ -17,6 +17,8 @@ class MessageUtil {
   receive({ peerId, type, message, target }) {
     switch(type) {
       case COMMAND_TYPES.MESSAGE:
+        // If we have a targeted message or a global message lets update our receiving container.
+        // @TODO hook into react
         if (peerId === target || !target) {
           document.getElementById('received-messages').innerHTML = JSON.stringify(message);
         }
