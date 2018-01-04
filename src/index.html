@@ -1,17 +1,39 @@
 <html>
   <body>
-    <style>
-      #outgoing {
-        width: 600px;
-        word-wrap: break-word;
-      }
-    </style>
-    <form>
-      <textarea id="incoming"></textarea>
-      <button type="submit">submit</button>
-    </form>
-    <pre id="outgoing"></pre>
+    <h4>Connection Details</h4>
+    I am <strong id="me">..</strong>. Connections <strong id="connections">0</strong><br/>
+
+    <br/>
+    <h4>Command Panel</h4>
+    <div style="display: flex">
+      <div style="width: 49%; display: inline-block;">
+        Target: <select id="studentList">
+          <option disabled>Awaiting Targets</option>
+        </select>
+        <br/>
+        Type: <select id="typeList"></select>
+        <br/>
+        Message:
+        <br/>
+        <textarea id="message" rows=6 style="width: 250px">
+{
+  somedata: true
+}
+        </textarea>
+        <br/>
+        <button type="button" id="send">Send</button>
+        <button type="button" id="startStream">Start Stream</button>
+        <button type="button" id="endStream">End Stream</button>
+      </div>
+      <code id="received-messages" style="width: 49%; display: inline-block; vertical-align: top;border-left: 2px solid green; padding-left: 5px;">
+        No Messages..
+      </code>
+    </div>
+    <br/>
+    <h4>Stream Preview / Canvas Area</h4>
     <canvas id="canvas" width="400" height="400"></canvas>
     <video id="video" width="400" height="400" style="border: 1px solid red"></video>
+
+
   </body>
 </html>

@@ -365,8 +365,8 @@ var jmParticleEngine = function() {
 
 var url = new URL(location.href);
 var params = url.searchParams;
-var isTeacher = params.get('teacher');
-if (isTeacher) {
+var isStudent = params.get('student');
+if (isStudent) {
   // Initiate engine to draw to DOM canvas with id "myCanvas" and detail its
   // dimensions.
   jmParticleEngine.init('canvas', 400, 400);
